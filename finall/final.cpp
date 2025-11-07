@@ -406,8 +406,23 @@ public:
 };
 class Sebet {
     vector<string> secilmisAdlar;
-
 public:
+    //void saveSifaris(const string& yemekAd, double qiymet) {
+    //    ofstream fayl("sifarisler.txt", ios::app);
+    //    if (fayl.is_open()) {
+    //        time_t indi = time(nullptr);
+    //        tm* vaxt = localtime(&indi);
+    //        if (vaxt == nullptr) {
+    //            throw string("Vaxt məlumatı alınmadı");
+    //        }
+
+    //        fayl << yemekAd << " | " << qiymet << "₼ | "<< (vaxt->tm_mday < 10 ? "0" : "") << vaxt->tm_mday << "."<< (vaxt->tm_mon + 1 < 10 ? "0" : "")
+    //        << vaxt->tm_mon + 1 << "."<< 1900 + vaxt->tm_year << " "<< (vaxt->tm_hour < 10 ? "0" : "") << vaxt->tm_hour << ":"<< (vaxt->tm_min < 10 ? "0" : "") << vaxt->tm_min << "\n";
+    //        fayl.close();
+    //    }
+
+    //}
+
     void yemekElaveEt(const string& ad, Menu& menu) {
         Food* yemek = menu.tap(ad);
         if (yemek == nullptr) {
@@ -447,10 +462,16 @@ class Admin {
     string sifre;
     Menu menu;
     Anbar sklad;
-    double butce = 0.0;
+    double butce = 1000.0;
 
 public:
     Admin() : istifadeciAdi("admin"), sifre("admin") {}
+    void budcedenPulCix(double mebleg) {
+        if (mebleg > butce) {
+            throw string("Bütcə kifayət etmir");
+        }
+        butce -= mebleg;
+    }
 
     void yemekElaveEt(const Food& yeniYemek) {
         menu.ElaveEt(yeniYemek);
@@ -481,8 +502,314 @@ public:
 
     Anbar& getAnbar() { return sklad; }
 };
+
+class User {
+    string istifadeciAdi;
+    string sifre;
+    string telefon;
+    Sebet sebet;
+
+public:
+    User() = default;
+
+    User(const string& ad, const string& kod, const string& tel) {
+        setAd(ad);
+        setSifre(kod);
+        setTelefon(tel);
+    }
+
+    string getAd() const { return istifadeciAdi; }
+    string getSifre() const { return sifre; }
+    string getTelefon() const { return telefon; }
+    Sebet& getSebet() { return sebet; }
+
+    void setAd(const string& ad) throw(string) {
+        if (ad.empty()) {
+        throw string("İstifadəçi adı boş ola bilməz");
+    }
+        istifadeciAdi = ad;
+    }
+
+    void setSifre(const string& kod) throw(string) {
+        if (kod.length() < 4) {
+            throw string("Şifrə ən azı 4 simvol olmalıdır");
+        }
+        sifre = kod;
+    }
+
+    void setTelefon(const string& tel)throw(string) {
+        if (tel.length() != 10) {
+            throw string("Telefon nömrəsi 10 rəqəmli olmalıdır");
+        }            
+        telefon = tel;
+    }
+
+
+    void qeydiyyat() {
+        cout << "Ad: "; 
+        getline(cin, istifadeciAdi);
+        cout << "Şifrə: "; 
+        getline(cin, sifre);
+        ignore;
+        cout << "Telefon: "; 
+        cin >> telefon;
+        try {
+            setAd(istifadeciAdi);
+            setSifre(sifre);
+            setTelefon(telefon);
+        }
+        catch (string ex) {
+            cout <<ex << endl;
+            return;
+        }
+
+        yaddaSaxla();
+        cout << "Qeydiyyat uğurla tamamlandı";
+
+    }
+
+    void yaddaSaxla() {
+        ofstream fayl("istifadeciler.txt", ios::app);
+        if (fayl.is_open()) {
+            fayl << istifadeciAdi << "#" << sifre << "#" << telefon << "\n";     
+            fayl.close();
+        }
+        else {
+            throw string("File couldn't open....");
+        }
+        
+    }
+    vector<User> LoadData() {
+        vector<User> siyahi;
+        string filepath = "istifadeciler.txt";
+        ifstream fs(filepath);
+        if (fs.is_open()) {
+
+            while (!fs.eof()) {
+                string row;
+                getline(fs, row);
+                int r = 0;
+                string istifadeciAdi, sifre, telefon;
+                for (auto character : row)
+                {
+                    if (character != '#' && r == 0) {
+                        istifadeciAdi += character;
+                    }
+                    else if (character != '#' && r == 1) {
+                        sifre += character;
+                    }
+                    else if (character != '#' && r == 2) {
+                        telefon += character;
+                    }
+                    else {
+                        r++;
+                    }
+                }     
+                User user(istifadeciAdi, sifre, telefon);
+                siyahi.push_back(user);
+            }
+        }
+        else {
+            throw string("File not found..");
+        }
+        fs.close();
+    }
+
+};
+
+
 void main() {
-    
+    vector<User> istifadeciler;
+    User temp;
+    try {
+        istifadeciler = temp.LoadData();
+    }
+    catch (string xeta) {
+        cout << "İstifadəçi faylı oxunmadı: " << xeta << endl;
+    }
+
+    Admin admin;
+
+    while (true) {
+        cout << "\n--- ANA MENYU ---\n";
+        cout << "1. Qeydiyyat\n";
+        cout << "2. Giriş\n";
+        cout << "3. Admin Paneli\n";
+        cout << "4. Çıxış\n";
+        cout << "Seçim: ";
+
+        int secim;
+        cin >> secim;
+        cin.ignore();
+
+        if (secim == 1) {
+            User yeni;
+            yeni.qeydiyyat();
+            istifadeciler.push_back(yeni);
+        }
+
+        else if (secim == 2) {
+            string ad, kod;
+            cout << "İstifadeci adı: "; 
+            getline(cin, ad);
+            cout << "Şifre: "; 
+            getline(cin, kod);
+
+            bool tapildi = false;
+            for (User& u : istifadeciler) {
+                if (u.getAd() == ad && u.getSifre() == kod) {
+                    cout << "Giriş uğurludur"<<endl;
+                    tapildi = true;
+
+                    while (true) {
+                        cout << "--- İSTİFADƏÇİ PANELİ ---" << endl;
+                        cout << "1. Menyuya bax" << endl;
+                        cout << "2. Səbətə əlavə et" << endl;
+                        cout << "3. Səbətə bax" << endl;
+                        cout << "4. Sifariş et" << endl;
+                        cout << "5. Geri dön" << endl;
+                        cout << "Seçim: ";
+
+                        int iceriSecim;
+                        cin >> iceriSecim;
+                        cin.ignore();
+
+                        if (iceriSecim == 1) {
+                            admin.menyunuGoster();
+                        }
+                        else if (iceriSecim == 2) {
+                            string yemekAd;
+                            cout << "Yeməyin adı: "; getline(cin, yemekAd);
+                            u.getSebet().yemekElaveEt(yemekAd, admin.getMenu());
+                        }
+                        else if (iceriSecim == 3) {
+                            u.getSebet().goster();
+                        }
+                        else if (iceriSecim == 4) {
+                            u.getSebet().sifarisEt(admin.getMenu(), admin.getAnbar());
+                        }
+                        else if (iceriSecim == 5) {
+                            break;
+                        }
+                        else {
+                            cout << "❌ Yanlış seçim!\n";
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            if (!tapildi) {
+                cout << "❌ Ad və ya şifrə yanlışdır.\n";
+            }
+        }
+
+        else if (secim == 3) {
+            string kod;
+            cout << "Admin şifrə: "; getline(cin, kod);
+
+            if (kod == "admin") {
+                while (true) {
+                    cout << "\n--- ADMIN PANELİ ---\n";
+                    cout << "1. Anbara inqrediyent əlavə et\n";
+                    cout << "2. Yeni yemək əlavə et\n";
+                    cout << "3. Menyuya bax\n";
+                    cout << "4. Anbara bax\n";
+                    cout << "5. Büdcəyə bax\n";
+                    cout << "6. Geri dön\n";
+                    cout << "Seçim: ";
+
+                    int adminSecim;
+                    cin >> adminSecim;
+                    cin.ignore();
+
+                    if (adminSecim == 1) {
+                        string ad;
+                        double qiymet, miqdar;
+                        cout << "Ad: "; getline(cin, ad);
+                        cout << "Kilo qiyməti: "; cin >> qiymet;
+                        cout << "Miqdar (kg): "; cin >> miqdar;
+                        cin.ignore();
+
+                        try {
+                            admin.budcedenPulCix(qiymet * miqdar);
+                            admin.anbaraElaveEt(ad, miqdar, qiymet);
+                        }
+                        catch (string xeta) {
+                            cout << "❌ " << xeta << endl;
+                        }
+                    }
+
+                    else if (adminSecim == 2) {
+                        string ad, info;
+                        double qiymet;
+                        int porsiya, say;
+
+                        cout << "Yemək adı: "; getline(cin, ad);
+                        cout << "Əlavə info: "; getline(cin, info);
+                        cout << "Qiymət: "; cin >> qiymet;
+                        cout << "Porsiya sayı: "; cin >> porsiya;
+                        cout << "Neçə inqrediyent gedir: "; cin >> say;
+                        cin.ignore();
+
+                        Food yeni(ad, info, qiymet, porsiya);
+
+                        for (int i = 0; i < say; i++) {
+                            string ingAd;
+                            double ingMiqdar;
+                            cout << "Inqrediyent " << i + 1 << " adı: "; getline(cin, ingAd);
+                            cout << "Miqdarı (kg): "; cin >> ingMiqdar;
+                            cin.ignore();
+
+                            Ingredient* tapilan = admin.getAnbar().IngredientTap(ingAd);
+                            if (tapilan == nullptr) {
+                                cout << "❌ Anbarda yoxdur: " << ingAd << endl;
+                                continue;
+                            }
+
+                            Ingredient ing(ingAd, tapilan->getKiloQiymeti(), ingMiqdar);
+                            yeni.inqrediyentElaveEt(ing);
+                        }
+
+                        admin.yemekElaveEt(yeni);
+                    }
+
+                    else if (adminSecim == 3) {
+                        admin.menyunuGoster();
+                    }
+
+                    else if (adminSecim == 4) {
+                        admin.anbarGoster();
+                    }
+
+                    else if (adminSecim == 5) {
+                        admin.butceGoster();
+                    }
+
+                    else if (adminSecim == 6) {
+                        break;
+                    }
+
+                    else {
+                        cout << "❌ Yanlış seçim!\n";
+                    }
+                }
+            }
+            else {
+                cout << "❌ Şifrə yanlışdır.\n";
+            }
+        }
+
+        else if (secim == 4) {
+            cout << "👋 Sistemdən çıxılır...\n";
+            break;
+        }
+
+        else {
+            cout << "❌ Yanlış seçim!\n";
+        }
+    }
 }
 
 
