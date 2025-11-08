@@ -2,6 +2,7 @@
 #include <string>
 #include<vector>
 #include<fstream>
+#include <ctime>
 using namespace std;
 
 class Ingredient {
@@ -95,38 +96,41 @@ public:
     }
     void loadData() {
         string filepath = "sklad.txt";
-        ifstream fs(filepath);
-        if (fs.is_open()) {
-            while (!fs.eof()) {
-                string row;
-                getline(fs, row);
-                int r = 0;
-                string ad, miqdarkq, kiloqiymet;
-                for (auto character : row)
-                {
-                    if (character != '#' && r == 0) {
-                        ad += character;
+        ifstream fs(filepath); 
+            if (fs.is_open()) {
+                string row;              
+                while (getline(fs, row)) {
+                    if (row.empty()) continue;
+                    int r = 0;
+                    string ad, miqdarkq, kiloqiymet;
+                    for (auto character : row)
+                    {
+                        if (character != '#' && r == 0) {
+                            ad += character; 
+                        }
+                        else if (character != '#' && r == 1) {
+                            miqdarkq += character; 
+                        }
+                        else if (character != '#' && r == 2) {
+                            kiloqiymet += character; 
+                        }
+                        else {
+                            r++; 
+                        }
                     }
-                    else if (character != '#' && r == 1) {
-                        miqdarkq += character;
-                    }
-                    else if (character != '#' && r == 2) {
-                        kiloqiymet += character;
-                    }
-                    else {
-                        r++;
-                    }
-                }
-                double miqdar_kq = stod(miqdarkq);
-                double kilo_qiymet = stod(kiloqiymet);
-                Ingredient ing(ad, miqdar_kq, kilo_qiymet);
-                inqrediyentler.push_back(ing);
 
+                    if (miqdarkq.empty() || kiloqiymet.empty()) continue;
+
+                    double miqdar_kq = stod(miqdarkq); 
+                    double kilo_qiymet = stod(kiloqiymet);
+                    Ingredient ing(ad, kilo_qiymet, miqdar_kq); 
+                    inqrediyentler.push_back(ing);
+
+                }
             }
-        }
-        else {
-            throw string("File not found..");
-        }
+            else {
+                throw string("File not found.."); 
+            }
         fs.close();
     }
     void inqrediyentElaveEt(Ingredient yeni) throw(string) {
@@ -182,7 +186,7 @@ public:
         setAd(YemekAd);
         setInfo(YemekInfo);
         setQiymet(YemekQiymet);
-        PorsiyaSayi = 0;
+        this->PorsiyaSayi = PorsiyaSayi;
         aktivdir = true;
     }
 
@@ -312,43 +316,48 @@ public:
         fs.close();
     }
     void loadData() {
-        string filepath = "menu.txt";
-        ifstream fs(filepath);
-        if (fs.is_open()) {
-            while (!fs.eof()) {
+        string filepath = "menu.txt"; 
+            ifstream fs(filepath); 
+            if (fs.is_open()) {
                 string row;
-                getline(fs, row);
-                int r = 0;
-                string YemekAd, YemekInfo, YemekQiymet, YemekPorsiya;
-                for (auto character : row)
-                {
-                    if (character != '#' && r == 0) {
-                        YemekAd += character;
-                    }
-                    else if (character != '#' && r == 1) {
-                        YemekInfo += character;
-                    }
-                    else if (character != '#' && r == 2) {
-                        YemekQiymet += character;
-                    }
-                    else if (character != '#' && r == 3) {
-                        YemekPorsiya += character;
-                    }
-                    else {
-                        r++;
-                    }
-                }
-                double Yemek_Qiymet = stod(YemekQiymet);
-                int Yemek_Porsiya = stoi(YemekPorsiya);
-                Food food(YemekAd, YemekInfo, Yemek_Qiymet, Yemek_Porsiya);
-                yemekler.push_back(food);
+                while (getline(fs, row)) {
+                   
+                    if (row.empty()) continue;
 
+                     
+
+                        int r = 0; 
+                        string YemekAd, YemekInfo, YemekQiymet, YemekPorsiya; 
+                        for (auto character : row)
+                        {
+                            if (character != '#' && r == 0) {
+                                YemekAd += character; 
+                            }
+                            else if (character != '#' && r == 1) {
+                                YemekInfo += character; 
+                            }
+                            else if (character != '#' && r == 2) {
+                                YemekQiymet += character; 
+                            }
+                            else if (character != '#' && r == 3) {
+                                YemekPorsiya += character; 
+                            }
+                            else {
+                                r++; 
+                            }
+                        }
+                    if (YemekQiymet.empty() || YemekPorsiya.empty()) continue; 
+
+                    double Yemek_Qiymet = stod(YemekQiymet); 
+                        int Yemek_Porsiya = stoi(YemekPorsiya); 
+                        Food food(YemekAd, YemekInfo, Yemek_Qiymet, Yemek_Porsiya); 
+                        yemekler.push_back(food); 
+                }
             }
-        }
-        else {
-            throw string("File not found..");
-        }
-        fs.close();
+            else {
+                throw string("File not found.."); 
+            }
+        fs.close(); 
     }
     void ElaveEt(const Food& yemek) {
         yemekler.push_back(yemek);
@@ -462,7 +471,7 @@ class Admin {
     string sifre;
     Menu menu;
     Anbar sklad;
-    double butce = 1000.0;
+    double butce = 0;
 
 public:
     Admin() : istifadeciAdi("admin"), sifre("admin") {}
@@ -507,6 +516,7 @@ class User {
     string istifadeciAdi;
     string sifre;
     string telefon;
+    double pul = 100;
     Sebet sebet;
 
 public:
@@ -549,10 +559,9 @@ public:
         cout << "Ad: "; 
         getline(cin, istifadeciAdi);
         cout << "Şifrə: "; 
-        getline(cin, sifre);
-        ignore;
+        getline(cin, sifre);  
         cout << "Telefon: "; 
-        cin >> telefon;
+        getline(cin, telefon);
         try {
             setAd(istifadeciAdi);
             setSifre(sifre);
@@ -584,10 +593,10 @@ public:
         string filepath = "istifadeciler.txt";
         ifstream fs(filepath);
         if (fs.is_open()) {
+            string row;
+            while (getline(fs, row)) {
+                if (row.empty()) continue;
 
-            while (!fs.eof()) {
-                string row;
-                getline(fs, row);
                 int r = 0;
                 string istifadeciAdi, sifre, telefon;
                 for (auto character : row)
@@ -604,15 +613,16 @@ public:
                     else {
                         r++;
                     }
-                }     
+                }
                 User user(istifadeciAdi, sifre, telefon);
                 siyahi.push_back(user);
-            }
+            } 
         }
         else {
             throw string("File not found..");
         }
         fs.close();
+        return siyahi;
     }
 
 };
@@ -624,18 +634,19 @@ void main() {
     try {
         istifadeciler = temp.LoadData();
     }
-    catch (string xeta) {
-        cout << "İstifadəçi faylı oxunmadı: " << xeta << endl;
+    catch (string ex) {
+        cout <<ex << endl;
     }
 
     Admin admin;
 
     while (true) {
-        cout << "\n--- ANA MENYU ---\n";
-        cout << "1. Qeydiyyat\n";
-        cout << "2. Giriş\n";
-        cout << "3. Admin Paneli\n";
-        cout << "4. Çıxış\n";
+        
+        cout << "--- ANA MENYU ---"<<endl;
+        cout << "1. Qeydiyyat" << endl;
+        cout << "2. Giriş" << endl;
+        cout << "3. Admin Paneli" << endl;
+        cout << "4. Cixis" << endl;
         cout << "Seçim: ";
 
         int secim;
@@ -652,22 +663,23 @@ void main() {
             string ad, kod;
             cout << "İstifadeci adı: "; 
             getline(cin, ad);
-            cout << "Şifre: "; 
+            cout << "Şifre: ";
             getline(cin, kod);
 
             bool tapildi = false;
             for (User& u : istifadeciler) {
                 if (u.getAd() == ad && u.getSifre() == kod) {
-                    cout << "Giriş uğurludur"<<endl;
+                    cout << "Giriş uğurludur" << endl;
                     tapildi = true;
 
                     while (true) {
-                        cout << "--- İSTİFADƏÇİ PANELİ ---" << endl;
+                        
+                        cout << "--- İSTİFADEÇİ PANELİ ---" << endl;
                         cout << "1. Menyuya bax" << endl;
-                        cout << "2. Səbətə əlavə et" << endl;
-                        cout << "3. Səbətə bax" << endl;
+                        cout << "2. Sebete elave et" << endl; 
+                        cout << "3. Sebete bax" << endl; 
                         cout << "4. Sifariş et" << endl;
-                        cout << "5. Geri dön" << endl;
+                        cout << "5. Geri don" << endl;
                         cout << "Seçim: ";
 
                         int iceriSecim;
@@ -679,7 +691,8 @@ void main() {
                         }
                         else if (iceriSecim == 2) {
                             string yemekAd;
-                            cout << "Yeməyin adı: "; getline(cin, yemekAd);
+                            cout << "Yemeyin adı: "; 
+                            getline(cin, yemekAd);
                             u.getSebet().yemekElaveEt(yemekAd, admin.getMenu());
                         }
                         else if (iceriSecim == 3) {
@@ -692,7 +705,7 @@ void main() {
                             break;
                         }
                         else {
-                            cout << "❌ Yanlış seçim!\n";
+                            cout << "Sef seçim" << endl;
                         }
                     }
 
@@ -701,23 +714,25 @@ void main() {
             }
 
             if (!tapildi) {
-                cout << "❌ Ad və ya şifrə yanlışdır.\n";
+                cout << "Ad ve ya şifre sefdir " << endl;
             }
         }
 
         else if (secim == 3) {
             string kod;
-            cout << "Admin şifrə: "; getline(cin, kod);
+            cout << "Admin şifre: "; 
+            getline(cin, kod);
 
             if (kod == "admin") {
                 while (true) {
-                    cout << "\n--- ADMIN PANELİ ---\n";
-                    cout << "1. Anbara inqrediyent əlavə et\n";
-                    cout << "2. Yeni yemək əlavə et\n";
-                    cout << "3. Menyuya bax\n";
-                    cout << "4. Anbara bax\n";
-                    cout << "5. Büdcəyə bax\n";
-                    cout << "6. Geri dön\n";
+                    system("cls");
+                    cout << "--- ADMIN PANELİ ---" << endl;
+                    cout << "1. Anbara inqrediyent elave et" << endl;
+                    cout << "2. Yeni yemek elave et" << endl;
+                    cout << "3. Menyuya bax" << endl;
+                    cout << "4. Anbara bax" << endl;
+                    cout << "5. Büdcəye bax" << endl;
+                    cout << "6. Geri dön" << endl;
                     cout << "Seçim: ";
 
                     int adminSecim;
@@ -727,17 +742,20 @@ void main() {
                     if (adminSecim == 1) {
                         string ad;
                         double qiymet, miqdar;
-                        cout << "Ad: "; getline(cin, ad);
-                        cout << "Kilo qiyməti: "; cin >> qiymet;
-                        cout << "Miqdar (kg): "; cin >> miqdar;
+                        cout << "Ad: "; 
+                        getline(cin, ad);
+                        cout << "Kilo qiymeti: "; 
+                        cin >> qiymet;
+                        cout << "Miqdar (kg): "; 
+                        cin >> miqdar;
                         cin.ignore();
 
                         try {
                             admin.budcedenPulCix(qiymet * miqdar);
                             admin.anbaraElaveEt(ad, miqdar, qiymet);
                         }
-                        catch (string xeta) {
-                            cout << "❌ " << xeta << endl;
+                        catch (string ex) {
+                            cout<< ex << endl;
                         }
                     }
 
@@ -746,11 +764,16 @@ void main() {
                         double qiymet;
                         int porsiya, say;
 
-                        cout << "Yemək adı: "; getline(cin, ad);
-                        cout << "Əlavə info: "; getline(cin, info);
-                        cout << "Qiymət: "; cin >> qiymet;
-                        cout << "Porsiya sayı: "; cin >> porsiya;
-                        cout << "Neçə inqrediyent gedir: "; cin >> say;
+                        cout << "Yemek adı: "; 
+                        getline(cin, ad); 
+                        cout << "Elave info: "; 
+                        getline(cin, info);
+                        cout << "Qiymet: "; 
+                        cin >> qiymet;
+                        cout << "Porsiya sayı: "; 
+                        cin >> porsiya;
+                        cout << "Neçe inqrediyent gedir: "; 
+                        cin >> say;
                         cin.ignore();
 
                         Food yeni(ad, info, qiymet, porsiya);
@@ -758,13 +781,15 @@ void main() {
                         for (int i = 0; i < say; i++) {
                             string ingAd;
                             double ingMiqdar;
-                            cout << "Inqrediyent " << i + 1 << " adı: "; getline(cin, ingAd);
-                            cout << "Miqdarı (kg): "; cin >> ingMiqdar;
+                            cout << "Inqrediyent " << i + 1 << " adı: "; 
+                            getline(cin, ingAd);
+                            cout << "Miqdarı (kg): "; 
+                            cin >> ingMiqdar;
                             cin.ignore();
 
                             Ingredient* tapilan = admin.getAnbar().IngredientTap(ingAd);
                             if (tapilan == nullptr) {
-                                cout << "❌ Anbarda yoxdur: " << ingAd << endl;
+                                cout << "Anbarda yoxdur: " << ingAd << endl;
                                 continue;
                             }
 
@@ -792,22 +817,22 @@ void main() {
                     }
 
                     else {
-                        cout << "❌ Yanlış seçim!\n";
+                        cout << "Yanlış seçim!\n";
                     }
                 }
             }
             else {
-                cout << "❌ Şifrə yanlışdır.\n";
+                cout << "Şifre yanlışdır" << endl; 
             }
         }
 
         else if (secim == 4) {
-            cout << "👋 Sistemdən çıxılır...\n";
+            cout << "Sistemden çıxılır..." << endl; 
             break;
         }
 
         else {
-            cout << "❌ Yanlış seçim!\n";
+            cout << "Yanlış seçim" << endl;
         }
     }
 }
