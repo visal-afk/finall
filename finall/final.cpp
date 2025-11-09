@@ -837,22 +837,22 @@ void main() {
                     }
 
                     else {
-                        cout << "Yanlış seçim!\n";
+                        cout << "Yanlış secim" << endl;
                     }
                 }
             }
             else {
-                cout << "Şifre yanlışdır" << endl; 
+                cout << "Sifre yanlışdır" << endl; 
             }
         }
 
         else if (secim == 4) {
-            cout << "Sistemden çıxılır..." << endl; 
+            cout << "Sistemden cıxılır..." << endl; 
             break;
         }
 
         else {
-            cout << "Yanlış seçim" << endl;
+            cout << "Yanlıs secim" << endl;
         }
     }
 }
